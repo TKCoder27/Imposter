@@ -1,152 +1,320 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BlankOne | Hoonster's</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    body {
+      background-color: #f3f4f6; /* Tailwind gray-100 */
+      color: #111827; /* Tailwind gray-900 */
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      user-select: none;
     }
-
-    .fade-in {
-      animation: fadeIn 0.8s ease-out;
-    }
-
     #loading-screen {
-      animation: fadeIn 1.2s ease-in-out;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+      animation: fadeIn 1.2s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    button:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px #2563eb; /* Tailwind blue-600 ring */
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-900 font-sans">
-
+<body>
   <!-- Loading Screen -->
-  <div id="loading-screen" class="fixed inset-0 bg-black text-white flex flex-col justify-center items-center z-50">
-    <h1 class="text-4xl font-bold mb-4 animate-pulse">Hoonster's</h1>
+  <div id="loading-screen">
+    <h1 class="text-5xl font-extrabold mb-4 animate-pulse select-none">Hoonster's</h1>
     <p class="text-lg">Loading game...</p>
   </div>
 
-  <!-- Setup Section -->
-  <div id="setup" class="hidden min-h-screen flex flex-col justify-center items-center space-y-6 fade-in">
-    <h1 class="text-3xl font-bold">BlankOne</h1>
-    <label class="text-lg">How many players?</label>
-    <input id="playerCount" type="number" min="3" max="10" value="5"
-           class="border-2 border-gray-300 rounded px-4 py-2 text-center w-24 shadow-md" />
-    <button onclick="startGame()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg transition-transform duration-300 hover:scale-105">
+  <!-- Setup Screen -->
+  <section id="setup" class="hidden max-w-md w-full text-center space-y-6 fade-in">
+    <h1 class="text-4xl font-bold">BlankOne</h1>
+    <div class="flex flex-col space-y-3">
+      <label for="playerCount" class="text-lg font-medium">Number of Players (3-10):</label>
+      <input id="playerCount" type="number" min="3" max="10" value="5"
+        class="mx-auto w-24 rounded border-2 border-gray-300 px-4 py-2 text-center shadow-md transition focus:border-blue-600" />
+    </div>
+    <div class="flex flex-col space-y-3">
+      <label for="categorySelect" class="text-lg font-medium">Select Word Category:</label>
+      <select id="categorySelect"
+        class="mx-auto w-48 rounded border-2 border-gray-300 px-4 py-2 shadow-md transition focus:border-blue-600 cursor-pointer">
+        <option value="general">General</option>
+        <option value="sports">Sports</option>
+        <option value="food">Food</option>
+        <option value="animals">Animals</option>
+      </select>
+    </div>
+    <button id="startBtn"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded shadow-lg transition-transform duration-300 hover:scale-105 focus:ring-4 focus:ring-blue-500">
       Start Game
     </button>
-  </div>
+  </section>
 
-  <!-- Game Section -->
-  <div id="game" class="hidden text-center space-y-6 fade-in">
-    <p id="playerLabel" class="text-2xl font-semibold">Player 1, pass the device</p>
+  <!-- Game Screen -->
+  <section id="game" class="hidden max-w-md w-full text-center space-y-6 fade-in">
+    <p id="playerLabel" class="text-3xl font-semibold select-none">Player 1, pass the device</p>
     <button id="revealBtn"
-            onclick="revealWord()"
-            class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl transition duration-300 hover:scale-105">
+      class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl transition duration-300 hover:scale-105 focus:ring-4 focus:ring-green-500">
       Tap to reveal your word
     </button>
-    <p id="wordDisplay" class="text-2xl font-medium hidden"></p>
+    <p id="wordDisplay" class="text-2xl font-medium hidden select-none"></p>
     <button id="nextBtn"
-            onclick="nextPlayer()"
-            class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition hover:scale-105">
+      class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition hover:scale-105 focus:ring-4 focus:ring-gray-700">
       Next Player
     </button>
-  </div>
+  </section>
 
-  <audio id="revealSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+  <!-- Voting Screen -->
+  <section id="voting" class="hidden max-w-md w-full text-center space-y-6 fade-in">
+    <h2 class="text-3xl font-bold">Vote for the Imposter</h2>
+    <p id="votingPrompt" class="mb-4 select-none"></p>
+    <div id="voteButtons" class="flex flex-wrap justify-center gap-4"></div>
+  </section>
+
+  <!-- Results Screen -->
+  <section id="results" class="hidden max-w-md w-full text-center space-y-6 fade-in">
+    <h2 class="text-3xl font-bold">Voting Results</h2>
+    <ul id="resultsList" class="text-left max-w-xs mx-auto space-y-2"></ul>
+    <p id="imposterReveal" class="text-xl font-semibold mt-4"></p>
+    <button id="restartBtn"
+      class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg transition-transform duration-300 hover:scale-105 focus:ring-4 focus:ring-blue-500">
+      🔁 Play Again
+    </button>
+  </section>
+
+  <audio id="revealSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
 
   <script>
-    // Basic nouns list
-    const nouns = ["apple", "doctor", "mountain", "beach", "pencil", "lion", "car", "school", "cookie", "guitar"];
+    // Word categories
+    const wordLists = {
+      general: [
+        "apple", "doctor", "mountain", "beach", "pencil",
+        "lion", "car", "school", "cookie", "guitar"
+      ],
+      sports: [
+        "soccer", "basketball", "tennis", "baseball", "hockey",
+        "football", "swimming", "golf", "boxing", "volleyball"
+      ],
+      food: [
+        "pizza", "burger", "sushi", "pasta", "salad",
+        "chocolate", "taco", "steak", "ice cream", "sandwich"
+      ],
+      animals: [
+        "elephant", "tiger", "dolphin", "kangaroo", "owl",
+        "giraffe", "penguin", "rabbit", "zebra", "wolf"
+      ]
+    };
+
+    // Funny imposter messages
+    const imposterMessages = [
+      "You're the imposter, don't be SUS! 😎",
+      "You’re the odd one out — keep your poker face! 🃏",
+      "You got no word, just vibes. Play it cool! 😏",
+      "Imposter alert! Act like you know the word... or not 🤫",
+      "No word for you — but you’re still the MVP of mystery! 🕵️‍♂️"
+    ];
+
     let totalPlayers = 0;
     let currentPlayer = 1;
     let chosenWord = "";
     let imposterIndex = -1;
+    let votes = [];
 
-    // Wait then remove loading screen
+    // Elements
+    const loadingScreen = document.getElementById("loading-screen");
+    const setupSection = document.getElementById("setup");
+    const gameSection = document.getElementById("game");
+    const votingSection = document.getElementById("voting");
+    const resultsSection = document.getElementById("results");
+
+    const playerLabel = document.getElementById("playerLabel");
+    const revealBtn = document.getElementById("revealBtn");
+    const wordDisplay = document.getElementById("wordDisplay");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const voteButtonsDiv = document.getElementById("voteButtons");
+    const votingPrompt = document.getElementById("votingPrompt");
+    const resultsList = document.getElementById("resultsList");
+    const imposterReveal = document.getElementById("imposterReveal");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const playerCountInput = document.getElementById("playerCount");
+    const categorySelect = document.getElementById("categorySelect");
+    const startBtn = document.getElementById("startBtn");
+
+    const revealSound = document.getElementById("revealSound");
+
+    // Hide loading and show setup after delay
     window.addEventListener("load", () => {
       setTimeout(() => {
-        document.getElementById("loading-screen").style.display = "none";
-        document.getElementById("setup").classList.remove("hidden");
+        loadingScreen.style.display = "none";
+        setupSection.classList.remove("hidden");
       }, 1500);
     });
 
-    function startGame() {
-      totalPlayers = parseInt(document.getElementById("playerCount").value);
-      if (totalPlayers < 3 || totalPlayers > 10) return alert("Choose 3–10 players");
+    startBtn.addEventListener("click", () => {
+      totalPlayers = parseInt(playerCountInput.value);
+      if (isNaN(totalPlayers) || totalPlayers < 3 || totalPlayers > 10) {
+        alert("Please select between 3 and 10 players.");
+        return;
+      }
+      currentPlayer = 1;
+      votes = [];
 
-      chosenWord = nouns[Math.floor(Math.random() * nouns.length)];
+      // Select word list by category
+      const category = categorySelect.value;
+      const words = wordLists[category] || wordLists.general;
+
+      // Random word for normal players
+      chosenWord = words[Math.floor(Math.random() * words.length)];
+
+      // Random imposter index
       imposterIndex = Math.floor(Math.random() * totalPlayers);
 
-      document.getElementById("setup").classList.add("hidden");
-      document.getElementById("game").classList.remove("hidden");
+      setupSection.classList.add("hidden");
+      gameSection.classList.remove("hidden");
+      votingSection.classList.add("hidden");
+      resultsSection.classList.add("hidden");
+
       updatePlayerLabel();
-    }
+    });
 
     function updatePlayerLabel() {
-      document.getElementById("playerLabel").innerText = `Player ${currentPlayer}, pass the device`;
-      document.getElementById("revealBtn").classList.remove("hidden");
-      document.getElementById("wordDisplay").classList.add("hidden");
-      document.getElementById("nextBtn").classList.add("hidden");
+      playerLabel.textContent = `Player ${currentPlayer}, pass the device`;
+      revealBtn.classList.remove("hidden");
+      wordDisplay.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      wordDisplay.textContent = "";
     }
 
-    function revealWord() {
-      const display = document.getElementById("wordDisplay");
+    revealBtn.addEventListener("click", () => {
+      revealSound.currentTime = 0;
+      revealSound.play();
+
       const isImposter = currentPlayer - 1 === imposterIndex;
+      if (isImposter) {
+        const joke = imposterMessages[Math.floor(Math.random() * imposterMessages.length)];
+        wordDisplay.textContent = joke;
+      } else {
+        wordDisplay.textContent = `Your word is: ${chosenWord}`;
+      }
+      wordDisplay.classList.remove("hidden");
+      revealBtn.classList.add("hidden");
+      nextBtn.classList.remove("hidden");
+    });
 
-      document.getElementById("revealSound").play();
-
-      display.innerText = isImposter
-        ? "You're the odd one out. Pretend you know the word."
-        : `Your word is: ${chosenWord}`;
-
-      display.classList.remove("hidden");
-      document.getElementById("revealBtn").classList.add("hidden");
-      document.getElementById("nextBtn").classList.remove("hidden");
-    }
-
-    function nextPlayer() {
+    nextBtn.addEventListener("click", () => {
       if (currentPlayer < totalPlayers) {
         currentPlayer++;
         updatePlayerLabel();
       } else {
-        document.getElementById("game").innerHTML = `
-          <h2 class="text-3xl font-bold">All words revealed!</h2>
-          <p class="text-lg mt-2">Now talk with your friends and guess the imposter.</p>
-          <button onclick="restartGame()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
-            🔁 Play Again
-          </button>
-        `;
+        // All players revealed words, move to voting
+        startVotingPhase();
+      }
+    });
+
+    function startVotingPhase() {
+      gameSection.classList.add("hidden");
+      votingSection.classList.remove("hidden");
+      resultsSection.classList.add("hidden");
+      votes = Array(totalPlayers).fill(null);
+      currentPlayer = 1; // reset to first voter
+      votingPrompt.textContent = `Player ${currentPlayer}, pick the imposter:`;
+      renderVoteButtonsForCurrentPlayer();
+    }
+
+    function renderVoteButtonsForCurrentPlayer() {
+      voteButtonsDiv.innerHTML = "";
+      for (let i = 1; i <= totalPlayers; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = `Player ${i}`;
+        btn.className = "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition hover:scale-105 focus:ring-4 focus:ring-blue-500";
+        btn.onclick = () => castVote(i - 1);
+        voteButtonsDiv.appendChild(btn);
       }
     }
 
-    function restartGame() {
+    function castVote(playerIndex) {
+      votes[currentPlayer - 1] = playerIndex;
+      if (currentPlayer < totalPlayers) {
+        currentPlayer++;
+        votingPrompt.textContent = `Player ${currentPlayer}, pick the imposter:`;
+        renderVoteButtonsForCurrentPlayer();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      votingSection.classList.add("hidden");
+      resultsSection.classList.remove("hidden");
+
+      // Count votes
+      const voteCount = {};
+      votes.forEach(v => {
+        if (v !== null) voteCount[v] = (voteCount[v] || 0) + 1;
+      });
+
+      resultsList.innerHTML = "";
+      for (let i = 0; i < totalPlayers; i++) {
+        const li = document.createElement("li");
+        li.textContent = `Player ${i + 1}: ${voteCount[i] || 0} vote${(voteCount[i] || 0) !== 1 ? "s" : ""}`;
+        resultsList.appendChild(li);
+      }
+
+      const imposterVotes = voteCount[imposterIndex] || 0;
+      let msg;
+      if (imposterVotes >= Math.max(...Object.values(voteCount))) {
+        msg = `You caught the imposter! Player ${imposterIndex + 1} was the imposter! 🎉`;
+      } else {
+        msg = `The imposter was Player ${imposterIndex + 1}. Better luck next time! 🤫`;
+      }
+      imposterReveal.textContent = msg;
+    }
+
+    restartBtn.addEventListener("click", () => {
       totalPlayers = 0;
       currentPlayer = 1;
       chosenWord = "";
       imposterIndex = -1;
+      votes = [];
 
-      document.getElementById("setup").classList.remove("hidden");
-      document.getElementById("game").classList.add("hidden");
-      document.getElementById("game").innerHTML = `
-        <p id="playerLabel" class="text-2xl font-semibold">Player 1, pass the device</p>
-        <button id="revealBtn"
-                onclick="revealWord()"
-                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl transition duration-300 hover:scale-105">
-          Tap to reveal your word
-        </button>
-        <p id="wordDisplay" class="text-2xl font-medium hidden"></p>
-        <button id="nextBtn"
-                onclick="nextPlayer()"
-                class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition hover:scale-105">
-          Next Player
-        </button>
-      `;
-    }
+      setupSection.classList.remove("hidden");
+      gameSection.classList.add("hidden");
+      votingSection.classList.add("hidden");
+      resultsSection.classList.add("hidden");
+    });
   </script>
 </body>
 </html>
