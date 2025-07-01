@@ -1,51 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Find the Imposter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>  
-<body class="bg-neutral-100 text-center min-h-screen flex flex-col justify-center items-center px-4">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlankOne | Hoonster's</title>
+  <link rel="icon" href="favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-  <div id="setup" class="space-y-4">
-    <h1 class="text-3xl font-bold">Find the Imposter</h1>
-    <label class="block text-lg font-medium">How many players?</label>
+    .fade-in {
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    #loading-screen {
+      animation: fadeIn 1.2s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="fixed inset-0 bg-black text-white flex flex-col justify-center items-center z-50">
+    <h1 class="text-4xl font-bold mb-4 animate-pulse">Hoonster's</h1>
+    <p class="text-lg">Loading game...</p>
+  </div>
+
+  <!-- Setup Section -->
+  <div id="setup" class="hidden min-h-screen flex flex-col justify-center items-center space-y-6 fade-in">
+    <h1 class="text-3xl font-bold">BlankOne</h1>
+    <label class="text-lg">How many players?</label>
     <input id="playerCount" type="number" min="3" max="10" value="5"
-           class="border rounded px-4 py-2 text-center w-24" />
+           class="border-2 border-gray-300 rounded px-4 py-2 text-center w-24 shadow-md" />
     <button onclick="startGame()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg transition-transform duration-300 hover:scale-105">
       Start Game
     </button>
   </div>
 
-  <div id="game" class="hidden space-y-6">
+  <!-- Game Section -->
+  <div id="game" class="hidden text-center space-y-6 fade-in">
     <p id="playerLabel" class="text-2xl font-semibold">Player 1, pass the device</p>
     <button id="revealBtn"
             onclick="revealWord()"
-            class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl">
+            class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl transition duration-300 hover:scale-105">
       Tap to reveal your word
     </button>
     <p id="wordDisplay" class="text-2xl font-medium hidden"></p>
     <button id="nextBtn"
             onclick="nextPlayer()"
-            class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded">
+            class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition hover:scale-105">
       Next Player
     </button>
   </div>
 
-  <script>
-    const nouns = [
-      "apple", "doctor", "mountain", "beach", "pencil", "lion", "car", "school", "cookie", "guitar",
-      "banana", "city", "ocean", "bottle", "fire", "teacher", "forest", "book", "train", "mirror",
-      "cloud", "robot", "ice", "plane", "river", "chair", "clock", "phone", "bridge", "garden",
-      "shark", "island", "queen", "king", "hat", "candle", "drum", "sand", "milk", "snow"
-    ];
+  <audio id="revealSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
 
+  <script>
+    // Basic nouns list
+    const nouns = ["apple", "doctor", "mountain", "beach", "pencil", "lion", "car", "school", "cookie", "guitar"];
     let totalPlayers = 0;
     let currentPlayer = 1;
     let chosenWord = "";
     let imposterIndex = -1;
+
+    // Wait then remove loading screen
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("setup").classList.remove("hidden");
+      }, 1500);
+    });
 
     function startGame() {
       totalPlayers = parseInt(document.getElementById("playerCount").value);
@@ -56,7 +84,6 @@
 
       document.getElementById("setup").classList.add("hidden");
       document.getElementById("game").classList.remove("hidden");
-
       updatePlayerLabel();
     }
 
@@ -70,6 +97,8 @@
     function revealWord() {
       const display = document.getElementById("wordDisplay");
       const isImposter = currentPlayer - 1 === imposterIndex;
+
+      document.getElementById("revealSound").play();
 
       display.innerText = isImposter
         ? "You're the odd one out. Pretend you know the word."
@@ -88,10 +117,36 @@
         document.getElementById("game").innerHTML = `
           <h2 class="text-3xl font-bold">All words revealed!</h2>
           <p class="text-lg mt-2">Now talk with your friends and guess the imposter.</p>
+          <button onclick="restartGame()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+            🔁 Play Again
+          </button>
         `;
       }
     }
-  </script>
 
+    function restartGame() {
+      totalPlayers = 0;
+      currentPlayer = 1;
+      chosenWord = "";
+      imposterIndex = -1;
+
+      document.getElementById("setup").classList.remove("hidden");
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("game").innerHTML = `
+        <p id="playerLabel" class="text-2xl font-semibold">Player 1, pass the device</p>
+        <button id="revealBtn"
+                onclick="revealWord()"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded text-xl transition duration-300 hover:scale-105">
+          Tap to reveal your word
+        </button>
+        <p id="wordDisplay" class="text-2xl font-medium hidden"></p>
+        <button id="nextBtn"
+                onclick="nextPlayer()"
+                class="hidden bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition hover:scale-105">
+          Next Player
+        </button>
+      `;
+    }
+  </script>
 </body>
 </html>
