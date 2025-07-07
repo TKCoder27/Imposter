@@ -29,6 +29,36 @@
       padding: 2rem;
       box-shadow: 0 0 30px rgba(255, 192, 203, 0.2);
     }
+    .loader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      color: var(--accent);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .loader-ninja {
+      border: 4px solid var(--accent);
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
     select, input, button {
       transition: all 0.3s ease;
     }
@@ -47,11 +77,33 @@
     .theme-yellow {
       --accent: #facc15;
     }
+    .restart-button {
+      background-color: var(--accent);
+      color: white;
+      font-weight: bold;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      box-shadow: 0 0 15px var(--accent);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .restart-button:hover {
+      background-color: #fbb6ce;
+      box-shadow: 0 0 25px #fbb6ce;
+    }
   </style>
 </head>
+
 <body class="theme-sakura min-h-screen flex flex-col justify-center items-center p-6">
 
-  <div id="setup" class="card w-full max-w-md space-y-6">
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loader-container">
+    <div class="loader-ninja"></div>
+    <div>Loading... 🥷</div>
+  </div>
+
+  <!-- Game Setup -->
+  <div id="setup" class="card w-full max-w-md space-y-6 hidden">
     <h1 class="text-4xl font-extrabold text-center" style="color: var(--accent)">🌸 Ninja Imposter</h1>
 
     <div>
@@ -91,13 +143,9 @@
     <button onclick="startGame()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
       Begin Mission
     </button>
-
-    <div class="flex justify-between pt-4">
-      <a href="https://tkcoder27.github.io/Ice-Breaker/" class="text-sm hover:underline" style="color: var(--accent)">Ice Breaker ❄️</a>
-      <a href="https://tkcoder27.github.io/StoryLine/" class="text-sm hover:underline" style="color: var(--accent)">Story Line 📖</a>
-    </div>
   </div>
 
+  <!-- Game Area -->
   <div id="game" class="card w-full max-w-md space-y-6 hidden">
     <h2 id="playerPrompt" class="text-2xl font-bold text-center"></h2>
     <button id="revealBtn" onclick="revealWord()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
@@ -112,6 +160,7 @@
   <script>
     const themes = ["theme-sakura", "theme-blue", "theme-red", "theme-green", "theme-yellow"];
     const themeSelect = document.getElementById("themeSelect");
+
     themeSelect.addEventListener("change", () => {
       document.body.classList.remove(...themes);
       document.body.classList.add(themeSelect.value);
@@ -131,29 +180,46 @@
     let chosenWord = '';
     let imposterIndex = 0;
 
+    let playerCount = 5;
+
+    // Save and restore names when changing number of players
     function updatePlayers(count) {
+      playerCount = Number(count);
       document.getElementById('playerCountLabel').textContent = count;
       const container = document.getElementById('playerNamesContainer');
+      const oldNames = [];
+
+      const existingInputs = container.querySelectorAll('input');
+      existingInputs.forEach((input) => {
+        oldNames.push(input.value);
+      });
+
       container.innerHTML = '';
-      for (let i = 1; i <= count; i++) {
+      for (let i = 0; i < playerCount; i++) {
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = `Ninja ${i} name`;
+        input.placeholder = `Ninja ${i + 1} name`;
         input.className = 'w-full px-3 py-2 rounded bg-black border text-white';
         input.style.borderColor = 'var(--accent)';
+        input.value = oldNames[i] || `Ninja ${i + 1}`;
         container.appendChild(input);
       }
     }
 
     window.onload = () => {
       updatePlayers(document.getElementById('playerCount').value);
+
+      setTimeout(() => {
+        document.getElementById("loadingScreen").style.display = "none";
+        document.getElementById("setup").classList.remove("hidden");
+      }, 2500);
     }
 
     function startGame() {
       const inputs = document.querySelectorAll('#playerNamesContainer input');
-      playerNames = Array.from(inputs).map(input => input.value || 'Ninja');
+      playerNames = Array.from(inputs).map(input => input.value.trim() || 'Ninja');
 
-      if (playerNames.some(name => name.trim() === '')) {
+      if (playerNames.some(name => name === '')) {
         alert('Please fill in all ninja names!');
         return;
       }
@@ -167,7 +233,23 @@
 
       document.getElementById('setup').classList.add('hidden');
       document.getElementById('game').classList.remove('hidden');
+      renderGameUI();
       updatePlayerPrompt();
+    }
+
+    function renderGameUI() {
+      // If the game area was replaced (like after end game), reset it back
+      const gameDiv = document.getElementById('game');
+      gameDiv.innerHTML = `
+        <h2 id="playerPrompt" class="text-2xl font-bold text-center"></h2>
+        <button id="revealBtn" onclick="revealWord()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
+          Tap to reveal your word
+        </button>
+        <p id="wordDisplay" class="text-xl text-center"></p>
+        <button id="nextBtn" onclick="nextPlayer()" class="hidden font-bold py-2 px-6 rounded w-full bg-black text-white hover:opacity-80">
+          Next Ninja ➡️
+        </button>
+      `;
     }
 
     function updatePlayerPrompt() {
@@ -192,10 +274,33 @@
       if (currentPlayer < playerNames.length) {
         updatePlayerPrompt();
       } else {
-        document.getElementById('game').innerHTML = `
+        const gameDiv = document.getElementById('game');
+        gameDiv.innerHTML = `
           <h2 class="text-3xl font-bold text-center">🕵️‍♂️ All Ninjas have seen their word.</h2>
-          <p class="text-center mt-4" style="color: var(--accent)">Time to talk and discover the imposter!</p>`;
+          <p class="text-center mt-4" style="color: var(--accent)">Time to talk and discover the imposter!</p>
+          <div class="mt-6 flex justify-center">
+            <button onclick="restartGame()" class="restart-button">🔁 Restart Game</button>
+          </div>
+        `;
       }
+    }
+
+    function restartGame() {
+      // Reset game variables
+      currentPlayer = 0;
+      chosenWord = '';
+      imposterIndex = 0;
+
+      // Show setup, hide game
+      document.getElementById('setup').classList.remove('hidden');
+      document.getElementById('game').classList.add('hidden');
+
+      // Restore player inputs (names and count)
+      updatePlayers(playerCount);
+
+      // Restore theme
+      document.body.classList.remove(...themes);
+      document.body.classList.add(themeSelect.value);
     }
   </script>
 
