@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ninja Imposter</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #f472b6;
+      --bg: #111;
+      --text: #fdfdfd;
+    }
+    body {
+      font-family: 'Urbanist', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      background-image: url('https://stlpartners.com/wp-content/uploads/2022/08/Green-coding.png');
+      background-size: cover;
+      background-blend-mode: overlay;
+    }
+    .card {
+      background-color: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 0 30px rgba(255, 192, 203, 0.2);
+    }
+    .loader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      color: var(--accent);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .loader-ninja {
+      border: 4px solid var(--accent);
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    select, input, button {
+      transition: all 0.3s ease;
+    }
+    .theme-sakura {
+      --accent: #f472b6;
+    }
+    .theme-blue {
+      --accent: #3b82f6;
+    }
+    .theme-red {
+      --accent: #ef4444;
+    }
+    .theme-green {
+      --accent: #10b981;
+    }
+    .theme-yellow {
+      --accent: #facc15;
+    }
+    .restart-button {
+      background-color: var(--accent);
+      color: white;
+      font-weight: bold;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      box-shadow: 0 0 15px var(--accent);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .restart-button:hover {
+      background-color: #fbb6ce;
+      box-shadow: 0 0 25px #fbb6ce;
+    }
+  </style>
+</head>
+
+<body class="theme-sakura min-h-screen flex flex-col justify-center items-center p-6">
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loader-container">
+    <div class="loader-ninja"></div>
+    <div>Loading... 🥷</div>
+  </div>
+
+  <!-- Game Setup -->
+  <div id="setup" class="card w-full max-w-md space-y-6 hidden">
+    <h1 class="text-4xl font-extrabold text-center" style="color: var(--accent)">🌸 Ninja Imposter</h1>
+
+    <div>
+      <label class="block mb-1 font-semibold">Number of Players</label>
+      <input id="playerCount" type="range" min="3" max="10" value="5" class="w-full accent-pink-400" oninput="updatePlayers(this.value)">
+      <output id="playerCountLabel" class="block text-center mt-1 font-bold" style="color: var(--accent)">5</output>
+    </div>
+
+    <div>
+      <label class="block mb-1 font-semibold">Enter Player Names</label>
+      <div id="playerNamesContainer" class="space-y-2"></div>
+    </div>
+
+    <div>
+      <label class="block mb-1 font-semibold">Choose Theme</label>
+      <select id="themeSelect" class="w-full rounded px-4 py-2 bg-black border text-white" style="border-color: var(--accent)">
+        <option value="theme-sakura">🌸 Pink & Black (Sakura)</option>
+        <option value="theme-blue">💙 Blue & Black</option>
+        <option value="theme-red">❤️ Red & Black</option>
+        <option value="theme-green">💚 Green & Black</option>
+        <option value="theme-yellow">💛 Yellow & Black</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block mb-1 font-semibold">Choose Word Category</label>
+      <select id="categorySelect" class="w-full rounded px-4 py-2 bg-black border text-white" style="border-color: var(--accent)">
+        <option value="general">🧠 General (Easy)</option>
+        <option value="ninja">🥷 Ninja</option>
+        <option value="sports">🏈 Sports</option>
+        <option value="food">🍕 Food</option>
+        <option value="animals">🐯 Animals</option>
+        <option value="countries">🌍 Countries</option>
+      </select>
+    </div>
+
+    <button onclick="startGame()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
+      Begin Mission
+    </button>
+  </div>
+
+  <!-- Game Area -->
+  <div id="game" class="card w-full max-w-md space-y-6 hidden">
+    <h2 id="playerPrompt" class="text-2xl font-bold text-center"></h2>
+    <button id="revealBtn" onclick="revealWord()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
+      Tap to reveal your word
+    </button>
+    <p id="wordDisplay" class="text-xl text-center"></p>
+    <button id="nextBtn" onclick="nextPlayer()" class="hidden font-bold py-2 px-6 rounded w-full bg-black text-white hover:opacity-80">
+      Next Ninja ➡️
+    </button>
+  </div>
+
+  <script>
+    const themes = ["theme-sakura", "theme-blue", "theme-red", "theme-green", "theme-yellow"];
+    const themeSelect = document.getElementById("themeSelect");
+
+    themeSelect.addEventListener("change", () => {
+      document.body.classList.remove(...themes);
+      document.body.classList.add(themeSelect.value);
+    });
+
+    const categoryWords = {
+      general: ["apple", "book", "car", "tree", "house", "cup", "phone", "table", "shoe", "cat"],
+      ninja: ["katana", "dojo", "sakura", "stealth", "shuriken", "bamboo", "dragon", "sensei", "ninja", "kimono"],
+      sports: ["soccer", "basketball", "tennis", "golf", "hockey", "cricket", "rugby", "baseball", "skiing", "boxing"],
+      food: ["pizza", "burger", "sushi", "noodles", "taco", "cake", "apple", "cheese", "steak", "salad"],
+      animals: ["lion", "tiger", "elephant", "zebra", "giraffe", "kangaroo", "panda", "monkey", "eagle", "shark"],
+      countries: ["japan", "france", "brazil", "canada", "india", "germany", "egypt", "china", "australia", "mexico"]
+    };
+
+    let playerNames = [];
+    let currentPlayer = 0;
+    let chosenWord = '';
+    let imposterIndex = 0;
+
+    let playerCount = 5;
+
+    // Save and restore names when changing number of players
+    function updatePlayers(count) {
+      playerCount = Number(count);
+      document.getElementById('playerCountLabel').textContent = count;
+      const container = document.getElementById('playerNamesContainer');
+      const oldNames = [];
+
+      const existingInputs = container.querySelectorAll('input');
+      existingInputs.forEach((input) => {
+        oldNames.push(input.value);
+      });
+
+      container.innerHTML = '';
+      for (let i = 0; i < playerCount; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = `Ninja ${i + 1} name`;
+        input.className = 'w-full px-3 py-2 rounded bg-black border text-white';
+        input.style.borderColor = 'var(--accent)';
+        input.value = oldNames[i] || `Ninja ${i + 1}`;
+        container.appendChild(input);
+      }
+    }
+
+    window.onload = () => {
+      updatePlayers(document.getElementById('playerCount').value);
+
+      setTimeout(() => {
+        document.getElementById("loadingScreen").style.display = "none";
+        document.getElementById("setup").classList.remove("hidden");
+      }, 2500);
+    }
+
+    function startGame() {
+      const inputs = document.querySelectorAll('#playerNamesContainer input');
+      playerNames = Array.from(inputs).map(input => input.value.trim() || 'Ninja');
+
+      if (playerNames.some(name => name === '')) {
+        alert('Please fill in all ninja names!');
+        return;
+      }
+
+      const category = document.getElementById("categorySelect").value;
+      const wordList = categoryWords[category];
+      chosenWord = wordList[Math.floor(Math.random() * wordList.length)];
+
+      imposterIndex = Math.floor(Math.random() * playerNames.length);
+      currentPlayer = 0;
+
+      document.getElementById('setup').classList.add('hidden');
+      document.getElementById('game').classList.remove('hidden');
+      renderGameUI();
+      updatePlayerPrompt();
+    }
+
+    function renderGameUI() {
+      // If the game area was replaced (like after end game), reset it back
+      const gameDiv = document.getElementById('game');
+      gameDiv.innerHTML = `
+        <h2 id="playerPrompt" class="text-2xl font-bold text-center"></h2>
+        <button id="revealBtn" onclick="revealWord()" class="font-bold py-2 px-6 rounded w-full" style="background-color: var(--accent); color: white">
+          Tap to reveal your word
+        </button>
+        <p id="wordDisplay" class="text-xl text-center"></p>
+        <button id="nextBtn" onclick="nextPlayer()" class="hidden font-bold py-2 px-6 rounded w-full bg-black text-white hover:opacity-80">
+          Next Ninja ➡️
+        </button>
+      `;
+    }
+
+    function updatePlayerPrompt() {
+      document.getElementById('playerPrompt').textContent = `🌸 ${playerNames[currentPlayer]}, pass the device...`;
+      document.getElementById('revealBtn').classList.remove('hidden');
+      document.getElementById('wordDisplay').textContent = '';
+      document.getElementById('nextBtn').classList.add('hidden');
+    }
+
+    function revealWord() {
+      document.getElementById('wordDisplay').textContent =
+        currentPlayer === imposterIndex
+          ? "You're the imposter! Pretend you know the word. 🤫"
+          : `Your word is: ${chosenWord}`;
+
+      document.getElementById('revealBtn').classList.add('hidden');
+      document.getElementById('nextBtn').classList.remove('hidden');
+    }
+
+    function nextPlayer() {
+      currentPlayer++;
+      if (currentPlayer < playerNames.length) {
+        updatePlayerPrompt();
+      } else {
+        const gameDiv = document.getElementById('game');
+        gameDiv.innerHTML = `
+          <h2 class="text-3xl font-bold text-center">🕵️‍♂️ All Ninjas have seen their word.</h2>
+          <p class="text-center mt-4" style="color: var(--accent)">Time to talk and discover the imposter!</p>
+          <div class="mt-6 flex justify-center">
+            <button onclick="restartGame()" class="restart-button">🔁 Restart Game</button>
+          </div>
+        `;
+      }
+    }
+
+    function restartGame() {
+      // Reset game variables
+      currentPlayer = 0;
+      chosenWord = '';
+      imposterIndex = 0;
+
+      // Show setup, hide game
+      document.getElementById('setup').classList.remove('hidden');
+      document.getElementById('game').classList.add('hidden');
+
+      // Restore player inputs (names and count)
+      updatePlayers(playerCount);
+
+      // Restore theme
+      document.body.classList.remove(...themes);
+      document.body.classList.add(themeSelect.value);
+    }
+  </script>
+
+</body>
+</html>
